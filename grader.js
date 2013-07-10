@@ -28,7 +28,7 @@ var program = require('commander');
 var cheerio = require('cheerio');
 var HTMLFILE_DEFAULT = "index.html";
 var CHECKSFILE_DEFAULT = "checks.json";
-var URL_DEFAULT = "http://young-mesa-4787.herokuapp.com/";
+var URL_DEFAULT = "http://";
 
 var assertFileExists = function(infile) {
     var instr = infile.toString();
@@ -38,10 +38,23 @@ var assertFileExists = function(infile) {
     }
     return instr;
 };
-
+var grade = function(inputfile){
+    var checkJson = checkHtmlFile(inputfile, program.checks);
+    var outJson = JSON.stringify(checkJson, null, 4);
+    console.log(outJson);
+}
+var gradeUrl = function(data){
+	saveFile(data);
+	grade("tmpfile.html");
+};
+var saveFile = function(data, response){
+	
+	fs.writeFileSync("tmpfile.html",data);
+	
+};
 var assertUrlExists = function(url) {
     var instr = url.toString();
-    ;
+    return instr;
 };
 
 var cheerioHtmlFile = function(htmlfile) {
@@ -76,11 +89,16 @@ if(require.main == module) {
     program
         .option('-c, --checks <check_file>', 'Path to checks.json', clone(assertFileExists), CHECKSFILE_DEFAULT)
         .option('-f, --file <html_file>', 'Path to index.html', clone(assertFileExists), HTMLFILE_DEFAULT)
-	.option('-u, --url <url>', 'http address', clone(assertUrlExists), URL_DEFAULT)
+	.option('-u, --url <url>', 'http address', clone(assertUrlExists))
         .parse(process.argv);
-    var checkJson = checkHtmlFile(program.url, program.checks);
-    var outJson = JSON.stringify(checkJson, null, 4);
-    console.log(outJson);
+    var inputfile = null;
+    if (program.url){
+	var result = rest.get(program.url).on('complete', function(data){
+	gradeUrl(data)});
+    } else {
+	inputfile = program.file;
+	grade(inputfile);
+    }
 } else {
     exports.checkHtmlFile = checkHtmlFile;
 }
